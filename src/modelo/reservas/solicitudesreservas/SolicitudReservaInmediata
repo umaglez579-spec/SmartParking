@@ -1,0 +1,46 @@
+package modelo.reservas.solicitudesreservas;
+
+import java.time.LocalDateTime;
+
+import modelo.gestoresplazas.GestorLocalidad;
+import modelo.vehiculos.Vehiculo;
+import list.ArrayList;
+
+public class SolicitudReservaInmediata extends SolicitudReserva{ 
+
+	private int radio; //radio máx para reservar una plaza
+	
+    //constructor
+	public SolicitudReservaInmediata(int i, int j, LocalDateTime tI, LocalDateTime tF, Vehiculo vehiculo, int radio) {
+		super(i, j, tI, tF, vehiculo); //hereda de SolicitudReserva
+		this.radio=radio;
+	}
+
+    @override
+	public boolean esValida(GestorLocalidad gestor) {
+		boolean a=super.esValida(gestor);
+		
+		a=(a
+			&&radio>0
+			&&(radio<=Math.max(Math.max(Math.abs(this.getIZona())+Math.abs(this.getJZona()),
+					Math.abs(this.getIZona()-gestor.getRadioMaxI())+Math.abs(this.getJZona())),
+					Math.max(Math.abs(this.getIZona())+Math.abs(this.getJZona()-gestor.getRadioMaxJ()),
+					Math.abs(this.getIZona()-gestor.getRadioMaxI())+Math.abs(this.getJZona()-gestor.getRadioMaxJ())))));
+		return a;
+	}
+
+    @override
+	public void gestionarSolicitudReserva(GestorLocalidad gestor) {
+		super.gestionarSolicitudReserva(gestor);
+		if(this.getHueco()==null) {
+			ArrayList<int[]> enRadio=new ArrayList<int[]>();
+			int[] localizacion=new int[2];
+			for(int i=0;i<gestor.getRadioMaxI();i++) {
+				for(int j=0;j<gestor.getRadioMaxJ();j++) {
+					
+				}
+			}
+		}
+	}
+	
+}
