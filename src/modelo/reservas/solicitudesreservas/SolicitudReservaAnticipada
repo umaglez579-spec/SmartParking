@@ -1,0 +1,33 @@
+package modelo.reservas.solicitudesreservas;
+
+import java.time.LocalDateTime;
+
+import modelo.gestoresplazas.GestorLocalidad;
+import modelo.vehiculos.Vehiculo;
+
+public class SolicitudReservaAnticipada extends SolicitudReserva{
+	private TEnumPrioridad prioridad;
+	
+	//Constructor que expande al del padre para inicilaizar el atributo de prioridad.
+	public SolicitudReservaAnticipada(int i, int j, LocalDateTime tI, 
+			LocalDateTime tF, Vehiculo vehiculo, TEnumPrioridad prioridad) {
+		super(i,j,tI,tF,vehiculo);
+		this.prioridad = prioridad;
+	}
+	
+	//devuelve la prioridad de la reserva.
+	public TEnumPrioridad getPrioridad() {
+		return this.prioridad;
+	}
+	
+	/*
+	 * metodo que expande al del padre para que en caso de que no se halla podido reservar directamente
+	 * la solicitud esta se guarde en la lista de espera
+	 */
+	public void gestionarSolicitudReserva(GestorLocalidad gestor) {
+		super.gestionarSolicitudReserva(gestor);
+		if (this.getHueco()==null) {
+			this.getGestorZona().meterEnListaEspera(this);
+		}
+	}
+}
