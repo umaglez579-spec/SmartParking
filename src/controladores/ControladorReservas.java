@@ -16,6 +16,7 @@ public class ControladorReservas {
 	private Reservas registroReservas;
 	private GestorLocalidad gestorLocalidad;
 
+	//permite llamar a los atributos privados
 	public GestorLocalidad getGestorLocalidad() {
 		return gestorLocalidad;
 	}
@@ -33,43 +34,61 @@ public class ControladorReservas {
 	}
 
 	//TO-DO alumno obligatorio
-
+	//constructor
 	public ControladorReservas(int[][] plazas, double[][] precios) {
-		//TO-DO
+		this.gestorLocalidad=new GestorLocalidad(plazas,precios);
+		this.registroReservas=new Reservas();
 	}
 
 
-	//PRE: la solicitud es válida
+	//PRE: la solicitud es vÃ¡lida
+	//devuelve el orden de prioridad
 	public int hacerReserva(SolicitudReserva solicitud) throws SolicitudReservaInvalida {
-		//TO-DO
-		return -1;
+		int i=-1; //si hueco=null, i=-1 (valor por defecto)
+		if(!solicitud.esValida(gestorLocalidad)) { 
+			throw new SolicitudReservaInvalida("Solicitud invÃ¡lida"); //@throws solicitud invÃ¡lida
+		}
+		solicitud.gestionarSolicitudReserva(gestorLocalidad); 
+		if(solicitud.getHueco()!=null) {
+			i=registroReservas.registrarReserva(solicitud); //ordenado por jerarquÃ­a
+		}
+		return i;
 	}
 
+	//constructor
 	public Reserva getReserva(int numReserva) {
-		//TO-DO
-		return null;
+		return registroReservas.obtenerReserva(numReserva);
 	}
 
-	//PRE: la plaza dada está libre y la reserva está validada
+	//PRE: la plaza dada estÃ¡ libre y la reserva estÃ¡ validada
 	public void ocuparPlaza(int i, int j, int numPlaza, int numReserva, Vehiculo vehiculo) throws PlazaOcupada, ReservaInvalida {
-		//TO-DO
+		registroReservas.obtenerReserva(numReserva).validar(i, j, numPlaza, vehiculo.getMatricula(), gestorLocalidad);
+		if(registroReservas.obtenerReserva(numReserva).getEstadoValidez().equals(EstadoValidez.FAILED)) {
+			throw new ReservaInvalida("La reserva no es validad"); //@throws reserva invÃ¡lida
+		}
+		if(registroReservas.obtenerReserva(numReserva).getHueco().getPlaza().getVehiculo()!=null) {
+			throw new PlazaOcupada("Esta plaza ya esta ocupada"); //@throws plaza ya ocupada
+		}
+		registroReservas.obtenerReserva(numReserva).getHueco().getPlaza().setVehiculo(vehiculo); //se reserva el hueco con la informaciÃ³n
 	}
+
 
 
 	//TO-DO alumno opcional
-
+	//elimina el vehículo de la plaza y se crea un hueco
 	public void desocuparPlaza(int numReserva) {
-		//TO-DO
+		registroReservas.obtenerReserva(numReserva).getHueco().getPlaza().setVehiculo(null);
+		registroReservas.obtenerReserva(numReserva).liberarHuecoReservado();
 	}
 
+	//borra la reserva y crea un hueco
 	public void anularReserva(int numReserva) {
-		//TO-DO
+		registroReservas.obtenerReserva(numReserva).liberarHuecoReservado();
+		registroReservas.borrarReserva(numReserva);
 	}
 
-		
-	// PRE (no es necesario comprobar): todas las solicitudes atendidas son válidas.
+	// PRE (no es necesario comprobar): todas las solicitudes atendidas son vÃ¡lidas.
 	public IList<Integer> getReservasRegistradasDesdeListaEspera(int i, int j){
-		//TO-DO
 		return null;
 	}
 }
