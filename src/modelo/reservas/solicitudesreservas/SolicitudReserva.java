@@ -10,14 +10,15 @@ import modelo.vehiculos.Vehiculo;
 
 
 public class SolicitudReserva {
-	private int iZona;
-	private int jZona;
-	private LocalDateTime tInicial;
-	private LocalDateTime tFinal;
-	private Vehiculo vehiculo;
+	private int iZona; //coordenada i
+	private int jZona; //coordenada j
+	private LocalDateTime tInicial; //inicio
+	private LocalDateTime tFinal; //final
+	private Vehiculo vehiculo; //vehículo para el que se solicita
 	private GestorZona gestorZona; // se inicializa al gestionar la solicitud
 	private Hueco hueco; // se deja a null hasta que se completa la reserva
 
+	//constructor
 	protected SolicitudReserva(int i, int j, LocalDateTime tI, 
 			LocalDateTime tF, Vehiculo vehiculo) {
 		this.iZona = i;
@@ -25,6 +26,7 @@ public class SolicitudReserva {
 		this.tInicial = tI;
 		this.tFinal = tF;
 		this.vehiculo = vehiculo;
+		this.hueco=null;
 	}
 
 	public String toString() {
@@ -37,7 +39,7 @@ public class SolicitudReserva {
 	}
 
 	public Hueco getHueco() {
-		return hueco;
+		return this.hueco;
 	}
 	
 	public void setGestorZona(GestorZona gestor) {
@@ -69,14 +71,15 @@ public class SolicitudReserva {
 	}
 	
 	//TO-DO alumno obligatorio
-	
+	//tFinal>tInicial, existen coordenadas (i,j), el vehículo no está sancionado
 	public boolean esValida(GestorLocalidad gestorLocalidad) {
-		//TO-DO
-		return false;
+		return (this.tFinal.isAfter(this.tInicial) && gestorLocalidad.existeZona(iZona, jZona) && !vehiculo.getSancionado());
 	}
 	
+	//el hueco se ocupa desde tInicial hasta tFinal
 	public void gestionarSolicitudReserva(GestorLocalidad gestor) {
-		//TO-DO	
+		this.gestorZona=gestor.getGestorZona(this.iZona, this.jZona);
+		this.hueco=this.gestorZona.reservarHueco(this.tInicial, this.tFinal);
 	}
 
 }
