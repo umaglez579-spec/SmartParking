@@ -10,13 +10,13 @@ import modelo.gestoresplazas.huecos.Plaza;
 import modelo.reservas.solicitudesreservas.SolicitudReservaAnticipada;
 
 public class GestorZona {
-	private int iZona;
-	private int jZona;
-	private Plaza[] plazas;
-	private double precio;
-	private IList<SolicitudReservaAnticipada> listaEspera;
-	private GestorHuecos gestorHuecos;
-	private IList<Hueco> huecosReservados;
+	private int iZona; //coordenada i
+	private int jZona; //coordenada j
+	private Plaza[] plazas; //array de nº plazas
+	private double precio; //precio de cada plaza
+	private IList<SolicitudReservaAnticipada> listaEspera; //array lista de espera
+	private GestorHuecos gestorHuecos; //huecos asociados a una zona
+	private IList<Hueco> huecosReservados; //lista de huecos reservados
 	
 	public int getI() {
 		return iZona;
@@ -55,43 +55,85 @@ public class GestorZona {
 	}
 	
 	//TO-DO alumno obligatorios
-	
+	//constructor
 	public GestorZona(int i, int j, int noPlazas, double precio) {
-		//TO-DO
+		this.iZona=i;
+		this.jZona=j;
+		this.plazas=new Plaza[noPlazas];
+		for (int e=0;e<noPlazas;e++) {
+			plazas[e]=new Plaza(e);
+		}
+		//inicializar los atributos
+		this.precio=precio;
+		this.gestorHuecos= new GestorHuecos(this.plazas);
+		this.huecosReservados=new ArrayList<Hueco>();
+		this.listaEspera=new ArrayList<SolicitudReservaAnticipada>();
+		
+		
 	}
 	
+	//los huecos se reservan introduciendo el intervalo de tiempo que serán ocupados
 	public Hueco reservarHueco(LocalDateTime tI, LocalDateTime tF) {
-		//TO-DO
-		return null;
+		Hueco hueco=gestorHuecos.reservarHueco(tI, tF);
+		if (hueco!=null) { //si existe el hueco se añade al final
+			huecosReservados.add(huecosReservados.size(), hueco);
+		}
+		return hueco;
 	}
 	
-	public boolean existeHueco(LocalDateTime tI, LocalDateTime tF) {
-		return false;
-	}
-	
-	
+	//la solicitud se ordena dependiendo de su prioridad
 	public void meterEnListaEspera(SolicitudReservaAnticipada solicitud) {
-		//TO-DO
+        TEnumPrioridad baja = TEnumPrioridad.BAJA;
+        TEnumPrioridad media = TEnumPrioridad.MEDIA;
+        TEnumPrioridad alta = TEnumPrioridad.ALTA;
+		int i=listaEspera.size();
+		if(solicitud.getPrioridad().equals(baja)) { //añadir al final
+			i=listaEspera.size();
+		}
+		if(solicitud.getPrioridad().equals(media)) { //añadir justo antes de la primera prioridad baja
+			for(i=listaEspera.size(); i>0 && (listaEspera.get(i-1).getPrioridad().equals(baja));i--);
+		}
+		if(solicitud.getPrioridad().equals(alta)) { //añadir justo antes de la primera prioridad media
+		for(i=0;i<listaEspera.size() && (listaEspera.get(i).getPrioridad().equals(alta));i--);
+		}
+		listaEspera.add(i, solicitud);
 	}
 	
-	public boolean existeHuecoReservado(Hueco hueco) {
-		//TO-DO
-		return false;
+	//buscar si existe el hueco en el array huecosReservados
+	public boolean existeHueco(LocalDateTime tI, LocalDateTime tF) {
+		int i;
+		for (i=0;i<huecosReservados.size()&&
+				!((huecosReservados.get(i).gettI()==tI)&&(huecosReservados.get(i).gettF()==tF));i++);
+		return (i<huecosReservados.size()); //sale del bucle antes si ha encontrado el hueco
+	}
+	
+	//busca si el hueco está reservado
+	public boolean existeHuecoReservado(Hueco hueco) { 
+		int i;
+		for (i=0;i<huecosReservados.size()&&
+				!(huecosReservados.get(i).getPlaza().equals(hueco.getPlaza()));i++);
+		return i<huecosReservados.size()&&existeHueco(hueco.gettI(),hueco.gettF());
 	}
 	
 	//TO-DO alumno opcionales
 	
 	public void liberarHueco(Hueco hueco) {
-		//TO-DO
+		huecosReservados.remove(hueco);
+		gestorHuecos.liberarHueco(hueco);
 	}
 
 	//PRE (no es necesario comprobar): las solicitudes de la lista de espera son válidas
 	public IList<SolicitudReservaAnticipada> getSolicitudesAtendidasListaEspera() {
-		//TO-DO
-		return null;
+		IList<SolicitudReservaAnticipada> lista=new ArrayList<SolicitudReservaAnticipada>();
+		Hueco hueco=null;
+		for(int i=0;i<listaEspera.size();i++) {
+			hueco=reservarHueco(listaEspera.get(i).getTInicial(),listaEspera.get(i).getTFinal());
+		if(hueco!=null) {
+			lista.add(lista.size(), listaEspera.get(i));
+			listaEspera.removeElementAt(i);
+		}
+		}
+		return lista;
 	}
-
-	
-
 
 }
