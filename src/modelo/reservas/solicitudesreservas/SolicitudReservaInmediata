@@ -6,39 +6,69 @@ import modelo.gestoresplazas.GestorLocalidad;
 import modelo.vehiculos.Vehiculo;
 import list.ArrayList;
 
-public class SolicitudReservaInmediata extends SolicitudReserva{ 
-
-	private int radio; //radio máx para reservar una plaza
+public class SolicitudReservaInmediata extends SolicitudReserva{
 	
-    //constructor
+	private int radio;
+	
+	//Constructor que expande al del padre para inicilaizar el atributo de radio.
 	public SolicitudReservaInmediata(int i, int j, LocalDateTime tI, LocalDateTime tF, Vehiculo vehiculo, int radio) {
-		super(i, j, tI, tF, vehiculo); //hereda de SolicitudReserva
+		super(i, j, tI, tF, vehiculo);
 		this.radio=radio;
 	}
-
-    @override
+	
+	//Metodo que expande al del padre para confirma que el rango sea mayor que 0 y no se mas grande de lo que deberÃ­a.
 	public boolean esValida(GestorLocalidad gestor) {
 		boolean a=super.esValida(gestor);
 		
 		a=(a
 			&&radio>0
 			&&(radio<=Math.max(Math.max(Math.abs(this.getIZona())+Math.abs(this.getJZona()),
-					Math.abs(this.getIZona()-gestor.getRadioMaxI())+Math.abs(this.getJZona())),
-					Math.max(Math.abs(this.getIZona())+Math.abs(this.getJZona()-gestor.getRadioMaxJ()),
-					Math.abs(this.getIZona()-gestor.getRadioMaxI())+Math.abs(this.getJZona()-gestor.getRadioMaxJ())))));
+					                    Math.abs(this.getIZona()-gestor.getRadioMaxI())+Math.abs(this.getJZona())),
+					           Math.max(Math.abs(this.getIZona())+Math.abs(this.getJZona()-gestor.getRadioMaxJ()),
+					                    Math.abs(this.getIZona()-gestor.getRadioMaxI())+Math.abs(this.getJZona()-gestor.getRadioMaxJ())))));
 		return a;
 	}
-
-    @override
+	
+	/*
+	 * Metodo que expande al del padre para que en el caso de que no se halla podido reservar la reserva se busca
+	 * un espacio disponible en una zona dentro del rango mirando en orden: el precio, la distancia de Manhattan
+	 * y el sentido horario.
+	 */
 	public void gestionarSolicitudReserva(GestorLocalidad gestor) {
 		super.gestionarSolicitudReserva(gestor);
 		if(this.getHueco()==null) {
 			ArrayList<int[]> enRadio=new ArrayList<int[]>();
 			int[] localizacion=new int[2];
+			int puntero;
+			Hueco hueco=this.getHueco();
+			boolean seguir=true;
 			for(int i=0;i<gestor.getRadioMaxI();i++) {
 				for(int j=0;j<gestor.getRadioMaxJ();j++) {
+					if(radio<=Math.abs(this.getIZona()-i+Math.abs(this.getJZona()-j))) {
+					localizacion[0]=i;
+					localizacion[1]=j;
+					for(puntero=0;seguir&&puntero<enRadio.size()&&((gestor.getGestorZona(i, j).getPrecio()) >= (gestor.getGestorZona(enRadio.get(puntero)[0], enRadio.get(puntero)[1]).getPrecio()));puntero++) {
+						if(((gestor.getGestorZona(i, j).getPrecio()) == (gestor.getGestorZona(enRadio.get(puntero)[0], enRadio.get(puntero)[1]).getPrecio()))){
+							if((((Math.abs(this.getIZona()-i)+Math.abs(this.getJZona()-j)) < ((Math.abs(this.getIZona()-enRadio.get(puntero)[0])+Math.abs(this.getJZona()-enRadio.get(puntero)[1])))))){
+								seguir=false;
+							}
+							if(seguir&&((((Math.abs(this.getIZona()-i)+Math.abs(this.getJZona()-j)) == ((Math.abs(this.getIZona()-enRadio.get(puntero)[0])+Math.abs(this.getJZona()-enRadio.get(puntero)[1]))))))){
+								if((i<enRadio.get(puntero)[0]&& j>=this.getJZona()&& enRadio.get(puntero)[1]>=this.getJZona())||(i>enRadio.get(puntero)[0]&& j<this.getJZona()&& enRadio.get(puntero)[1]<this.getJZona())) {
+								seguir=false;	
+								} else if(j>enRadio.get(puntero)[1]&&j>=this.getJZona()&&enRadio.get(puntero)[1]<this.getJZona()) {
+								seguir=false;	
+								}
+							}
+						}
 					
+					}
+					enRadio.add(puntero, localizacion);
 				}
+			}
+		}
+			for(int recorrer=0;hueco==null&&recorrer<enRadio.size();recorrer++) {
+				this.setGestorZona(gestor.getGestorZona(enRadio.get(recorrer)[0],enRadio.get(recorrer)[1]));
+				this.setHueco(this.getGestorZona().reservarHueco(getTInicial(), getTFinal()));	
 			}
 		}
 	}
